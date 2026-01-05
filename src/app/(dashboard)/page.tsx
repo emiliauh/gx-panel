@@ -240,9 +240,6 @@ export default function Dashboard() {
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
               {primarySignal?.type || "Cellular"} Signal Metrics
-              {hasLteCapability && signal5g && (
-                <Badge variant="secondary" className="text-xs ml-2">+LTE</Badge>
-              )}
             </CardTitle>
             <CardDescription>
               Real-time signal quality with color-coded indicators
