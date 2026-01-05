@@ -93,9 +93,6 @@ export default function CellPage() {
           <CardTitle className="flex items-center gap-2">
             <Gauge className="h-5 w-5 text-primary" />
             Signal Quality
-            {signal5g && signal4g && (
-              <Badge variant="secondary" className="text-xs ml-2">+LTE</Badge>
-            )}
           </CardTitle>
           <CardDescription>
             Real-time signal metrics with color-coded quality indicators
