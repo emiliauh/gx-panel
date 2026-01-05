@@ -1,0 +1,235 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light mode - clean and not too bright */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
+
+    --sidebar-bg: 0 0% 98%;
+    --sidebar-fg: 222 47% 11%;
+    --sidebar-active: 217 91% 60%;
+  }
+
+  /* Very dark mode - like the reference */
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 217 91% 60%;
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 47 96% 53%;
+    --chart-4: 280 87% 65%;
+    --chart-5: 340 75% 55%;
+
+    --sidebar-bg: 0 0% 7%;
+    --sidebar-fg: 0 0% 60%;
+    --sidebar-active: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased overflow-x-hidden;
+  }
+
+  /* PWA safe area support for iOS notch/home indicator */
+  @supports (padding: env(safe-area-inset-bottom)) {
+    body {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+
+  /* Prevent pull-to-refresh on mobile */
+  body {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Optimize touch targets for mobile */
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-card border border-border/50;
+  }
+
+  .glass-card {
+    @apply bg-card border border-border/50 shadow-sm;
+  }
+
+  .sidebar {
+    @apply bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))] 
+           border-r border-border/50;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl 
+           transition-all duration-200 
+           hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .sidebar-item-active {
+    @apply bg-[hsl(var(--sidebar-active))] text-[hsl(var(--primary-foreground))];
+  }
+
+  .signal-bar {
+    @apply rounded-full transition-all duration-300;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg,
+      hsl(217, 91%, 60%) 0%,
+      hsl(142, 76%, 36%) 50%,
+      hsl(280, 87%, 65%) 100%
+    );
+  }
+
+  .stat-card {
+    @apply bg-card border border-border/50 rounded-2xl p-6 
+           transition-all duration-200 
+           hover:border-border hover:bg-card/80;
+  }
+
+  .metric-badge {
+    @apply px-3 py-1.5 rounded-full text-xs font-medium
+           bg-primary/10 text-primary border border-primary/20;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Signal bar animation */
+@keyframes pulse-signal {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-signal {
+  animation: pulse-signal 2s ease-in-out infinite;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  /* Reduce padding on small screens */
+  .sidebar-item {
+    @apply px-3 py-2;
+  }
+
+  /* Smaller card headers on mobile */
+  .glass-card {
+    @apply rounded-xl;
+  }
+
+  /* Ensure text doesn't overflow */
+  .font-mono {
+    word-break: break-all;
+  }
+
+  /* Better touch targets */
+  button, a {
+    min-height: 44px;
+  }
+
+  /* Smaller text for dense info on mobile */
+  .text-muted-foreground {
+    @apply text-xs sm:text-sm;
+  }
+}
+
+/* Hide scrollbar on mobile for cleaner look but keep functionality */
+@media (max-width: 768px) {
+  .overflow-auto::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* Ensure proper padding for safe areas on iOS */
+@supports (padding: env(safe-area-inset-left)) {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile sidebar animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}

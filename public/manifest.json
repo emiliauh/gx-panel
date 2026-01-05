@@ -1,0 +1,20 @@
+{
+  "name": "Gx Portal - 5G Gateway Manager",
+  "short_name": "Gx Portal",
+  "description": "Modern web admin interface for T-Mobile 5G Gateway",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "prefer_related_applications": false
+}

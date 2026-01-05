@@ -1,0 +1,42 @@
+{
+  "name": "tmo-g5ar-portal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public",
+    "start": "next start -H 0.0.0.0",
+    "start:prod": "PORT=9205 HOSTNAME=0.0.0.0 bun .next/standalone/server.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop gx-portal",
+    "pm2:restart": "pm2 restart gx-portal",
+    "pm2:logs": "pm2 logs gx-portal",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.23",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.562.0",
+    "next": "15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.15.0",
+    "swr": "^2.2.5",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "15",
+    "playwright": "^1.57.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "@types/bun": "latest"
+  }
+}
