@@ -1,16 +1,70 @@
 import { headers } from "next/headers"
 
-const DEFAULT_ROUTER_IP = "192.168.12.1"
+const DEFAULT_ROUTER_IP = process.env.DEFAULT_ROUTER_IP || "192.168.12.1"
+
+/**
+ * Validate that an IP address is a safe private IP (SSRF protection)
+ * Blocks localhost, link-local, and other dangerous addresses
+ * Only allows private IP ranges (RFC 1918)
+ */
+function isValidPrivateIP(ip: string): boolean {
+  // Basic IP format validation
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+  const match = ip.match(ipv4Regex)
+
+  if (!match) {
+    return false
+  }
+
+  const octets = match.slice(1, 5).map(Number)
+
+  // Check each octet is valid (0-255)
+  if (octets.some(octet => octet < 0 || octet > 255)) {
+    return false
+  }
+
+  // Block dangerous addresses
+  const blocklist = [
+    /^127\./,           // localhost (127.0.0.0/8)
+    /^169\.254\./,      // link-local (169.254.0.0/16)
+    /^0\./,             // invalid (0.0.0.0/8)
+    /^224\./,           // multicast (224.0.0.0/4)
+    /^240\./,           // reserved (240.0.0.0/4)
+    /^255\.255\.255\.255$/, // broadcast
+  ]
+
+  if (blocklist.some(pattern => pattern.test(ip))) {
+    return false
+  }
+
+  // Only allow private IP ranges (RFC 1918)
+  const allowlist = [
+    /^192\.168\./,                        // Private class C (192.168.0.0/16)
+    /^10\./,                               // Private class A (10.0.0.0/8)
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./,    // Private class B (172.16.0.0/12)
+  ]
+
+  return allowlist.some(pattern => pattern.test(ip))
+}
 
 /**
  * Get router IP from request headers (passed from client)
  * Falls back to default if not provided
+ * Validates IP to prevent SSRF attacks
  */
 export async function getRouterIp(): Promise<string> {
   try {
     const headersList = await headers()
     const routerIp = headersList.get("X-Gateway-IP")
-    return routerIp || DEFAULT_ROUTER_IP
+    const ipToUse = routerIp || DEFAULT_ROUTER_IP
+
+    // Validate IP to prevent SSRF
+    if (!isValidPrivateIP(ipToUse)) {
+      console.warn(`Invalid or unsafe IP address blocked: ${ipToUse}`)
+      return DEFAULT_ROUTER_IP
+    }
+
+    return ipToUse
   } catch {
     return DEFAULT_ROUTER_IP
   }
@@ -37,12 +91,13 @@ export async function getAuthToken(): Promise<string> {
 /**
  * Server-side fetch to gateway - acts as CORS proxy
  * Auth token and router IP are passed via headers from client
+ * Includes 10-second timeout to prevent hanging requests
  */
 export async function routerFetch<T>(
   endpoint: string,
-  options: { auth?: boolean; method?: string; body?: unknown } = {}
+  options: { auth?: boolean; method?: string; body?: unknown; timeout?: number } = {}
 ): Promise<T> {
-  const { auth = false, method = "GET", body } = options
+  const { auth = false, method = "GET", body, timeout = 10000 } = options
 
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -54,28 +109,47 @@ export async function routerFetch<T>(
   }
 
   const routerIp = await getRouterIp()
-  const response = await fetch(`http://${routerIp}${endpoint}`, {
-    method,
-    headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
-  })
 
-  if (!response.ok) {
-    // Handle authentication errors from the gateway
-    if (response.status === 401 || response.status === 403) {
-      throw new Error("Not authenticated")
+  // Add timeout protection
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+  try {
+    const response = await fetch(`http://${routerIp}${endpoint}`, {
+      method,
+      headers: requestHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      // Handle authentication errors from the gateway
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("Not authenticated")
+      }
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.result?.message || `Request failed: ${response.status}`)
     }
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.result?.message || `Request failed: ${response.status}`)
-  }
 
-  // Handle empty responses (common for POST requests)
-  const text = await response.text()
-  if (!text) {
-    return {} as T
-  }
+    // Handle empty responses (common for POST requests)
+    const text = await response.text()
+    if (!text) {
+      return {} as T
+    }
 
-  return JSON.parse(text)
+    return JSON.parse(text)
+  } catch (error) {
+    clearTimeout(timeoutId)
+
+    // Handle timeout errors
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout - gateway not responding')
+    }
+
+    throw error
+  }
 }
 
 // API Types

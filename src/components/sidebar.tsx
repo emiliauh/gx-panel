@@ -114,7 +114,7 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-dvh sidebar flex flex-col transition-all duration-300 overflow-hidden",
+          "fixed left-0 top-0 z-50 h-dvh sidebar flex flex-col transition-all duration-150 overflow-hidden",
           // Desktop: show based on collapsed state
           "hidden md:flex",
           isCollapsed ? "md:w-[72px]" : "md:w-52"
@@ -125,11 +125,11 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
       {/* Logo */}
       <div
         className={cn(
-          "flex items-center border-b border-border/50 transition-all duration-300",
+          "flex items-center border-b border-border/50",
           isCollapsed ? "justify-center px-3 py-5" : "justify-between px-5 py-5"
         )}
       >
-        <div className={cn("flex items-center", isCollapsed ? "gap-0" : "gap-3")}>
+        <div className="flex items-center gap-3">
           <Image
             src="/logo.svg"
             alt="5G Gateway"
@@ -137,9 +137,14 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
             height={36}
             className="flex-shrink-0"
           />
-          {!isCollapsed && (
-            <h1 className="font-semibold text-base text-foreground">Gx Portal</h1>
-          )}
+          <h1
+            className={cn(
+              "font-semibold text-base text-foreground whitespace-nowrap transition-opacity duration-150",
+              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+            )}
+          >
+            Gx Portal
+          </h1>
         </div>
       </div>
 
@@ -151,17 +156,24 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
             <Link
               key={item.href}
               href={item.href}
-              prefetch={true}
+              prefetch={false}
               onClick={handleNavClick}
               className={cn(
                 "sidebar-item group relative",
                 isActive && "sidebar-item-active",
-                isCollapsed && "justify-center px-0"
+                isCollapsed && "justify-center px-0 gap-0"
               )}
               title={isCollapsed ? item.label : undefined}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
-              {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              <span
+                className={cn(
+                  "font-medium whitespace-nowrap transition-opacity duration-150",
+                  isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                )}
+              >
+                {item.label}
+              </span>
               {/* Tooltip for collapsed mode */}
               {isCollapsed && (
                 <div className="absolute left-full ml-2 px-3 py-2 bg-popover border border-border text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
@@ -181,16 +193,23 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
           onClick={toggleDarkMode}
           className={cn(
             "sidebar-item w-full group relative",
-            isCollapsed && "justify-center px-0"
+            isCollapsed && "justify-center px-0 gap-0"
           )}
           title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
           {isDark ? (
-            <Sun className="h-5 w-5" />
+            <Sun className="h-5 w-5 flex-shrink-0" />
           ) : (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-5 w-5 flex-shrink-0" />
           )}
-          {!isCollapsed && <span className="font-medium">{isDark ? "Light Mode" : "Dark Mode"}</span>}
+          <span
+            className={cn(
+              "font-medium whitespace-nowrap transition-opacity duration-150",
+              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+            )}
+          >
+            {isDark ? "Light Mode" : "Dark Mode"}
+          </span>
           {isCollapsed && (
             <div className="absolute left-full ml-2 px-3 py-2 bg-popover border border-border rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
               {isDark ? "Light Mode" : "Dark Mode"}
@@ -204,27 +223,23 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
           onClick={togglePinned}
           className={cn(
             "sidebar-item w-full group relative",
-            isCollapsed && "justify-center px-0"
+            isCollapsed && "justify-center px-0 gap-0"
           )}
           title={isPinned ? "Unpin Sidebar" : "Pin Sidebar Open"}
         >
-          {isCollapsed ? (
-            <Pin className="h-5 w-5" />
+          {isPinned ? (
+            <PinOff className="h-5 w-5 flex-shrink-0" />
           ) : (
-            <>
-              {isPinned ? (
-                <>
-                  <PinOff className="h-5 w-5" />
-                  <span className="font-medium">Unpin</span>
-                </>
-              ) : (
-                <>
-                  <Pin className="h-5 w-5" />
-                  <span className="font-medium">Pin Open</span>
-                </>
-              )}
-            </>
+            <Pin className="h-5 w-5 flex-shrink-0" />
           )}
+          <span
+            className={cn(
+              "font-medium whitespace-nowrap transition-opacity duration-150",
+              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+            )}
+          >
+            {isPinned ? "Unpin" : "Pin Open"}
+          </span>
           {isCollapsed && (
             <div className="absolute left-full ml-2 px-3 py-2 bg-popover border border-border rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
               {isPinned ? "Unpin Sidebar" : "Pin Sidebar Open"}
@@ -238,12 +253,19 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
           onClick={handleLogout}
           className={cn(
             "sidebar-item w-full group relative",
-            isCollapsed && "justify-center px-0"
+            isCollapsed && "justify-center px-0 gap-0"
           )}
           title={isCollapsed ? "Logout" : undefined}
         >
-          <LogOut className="h-5 w-5" />
-          {!isCollapsed && <span className="font-medium">Logout</span>}
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          <span
+            className={cn(
+              "font-medium whitespace-nowrap transition-opacity duration-150",
+              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+            )}
+          >
+            Logout
+          </span>
           {isCollapsed && (
             <div className="absolute left-full ml-2 px-3 py-2 bg-popover border border-border rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
               Logout
@@ -289,7 +311,7 @@ export function Sidebar({ collapsed = false, onCollapsedChange, mobileOpen = fal
               <Link
                 key={item.href}
                 href={item.href}
-                prefetch={true}
+                prefetch={false}
                 onClick={handleNavClick}
                 className={cn(
                   "sidebar-item",

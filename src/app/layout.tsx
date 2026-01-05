@@ -43,31 +43,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/logo.svg" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                // Default to dark mode unless light mode is explicitly set
-                if (savedTheme === 'light') {
-                  document.documentElement.classList.remove('dark');
-                } else {
-                  document.documentElement.classList.add('dark');
-                }
-                
-                // Register service worker for PWA
-                if ('serviceWorker' in navigator) {
-                  window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                      console.log('ServiceWorker registration failed: ', err);
-                    });
-                  });
-                }
-              })();
-            `,
-          }}
-        />
+        <script src="/init.js" />
       </head>
       <body className={inter.className}>
         {children}

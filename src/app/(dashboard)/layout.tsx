@@ -58,12 +58,12 @@ export default function DashboardLayout({
             </div>
           </header>
 
-          <main className={`transition-all duration-300 flex-1 ${sidebarCollapsed ? "md:pl-[72px]" : "md:pl-52"}`}>
+          <main className={`transition-all duration-150 flex-1 ${sidebarCollapsed ? "md:pl-[72px]" : "md:pl-52"}`}>
             <div className="p-4 sm:p-6 max-w-7xl mx-auto pb-safe">
               {children}
             </div>
           </main>
-          <footer className={`transition-all duration-300 border-t border-border/50 py-4 px-4 sm:px-6 ${sidebarCollapsed ? "md:pl-[calc(72px+1.5rem)]" : "md:pl-[calc(13rem+1.5rem)]"}`}>
+          <footer className={`transition-all duration-150 border-t border-border/50 py-4 px-4 sm:px-6 ${sidebarCollapsed ? "md:pl-[calc(72px+1.5rem)]" : "md:pl-[calc(13rem+1.5rem)]"}`}>
             <div className="flex flex-col items-center gap-3 text-xs text-muted-foreground text-center md:text-left md:flex-row md:justify-between">
               <div className="flex flex-col items-center gap-2 md:flex-row md:gap-4">
                 <p>This project is open source and licensed under MIT.</p>

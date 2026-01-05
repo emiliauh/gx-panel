@@ -15,6 +15,34 @@ import { Wifi, Eye, EyeOff, Save, Radio, Shield, Antenna, AlertCircle, AlertTria
 import { Checkbox } from "@/components/ui/checkbox"
 import type { ApConfig } from "@/lib/router-api"
 
+/**
+ * Validate SSID name
+ * - Must be 1-32 characters
+ * - Alphanumeric, spaces, hyphens, underscores only
+ */
+function isValidSsid(ssid: string): boolean {
+  if (!ssid || ssid.length === 0 || ssid.length > 32) {
+    return false
+  }
+  // Allow alphanumeric, spaces, hyphens, underscores
+  const validPattern = /^[a-zA-Z0-9\s\-_]+$/
+  return validPattern.test(ssid)
+}
+
+/**
+ * Validate WiFi password
+ * - Must be 8-63 characters for WPA2/WPA3
+ * - Printable ASCII characters only
+ */
+function isValidWifiPassword(password: string): boolean {
+  if (!password || password.length < 8 || password.length > 63) {
+    return false
+  }
+  // Printable ASCII characters (32-126)
+  const validPattern = /^[\x20-\x7E]+$/
+  return validPattern.test(password)
+}
+
 export default function WifiPage() {
   const { data, isLoading, mutate } = useApConfig()
   const [showPassword, setShowPassword] = useState(false)
@@ -24,6 +52,8 @@ export default function WifiPage() {
   const [show5GHzWarning, setShow5GHzWarning] = useState(false)
   const [warningConfirmed, setWarningConfirmed] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [ssidError, setSsidError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
 
   // Sync local config with fetched data
   useEffect(() => {
@@ -147,6 +177,13 @@ export default function WifiPage() {
   const updateSsidName = (name: string) => {
     if (!localConfig || !ssid) return
 
+    // Validate SSID
+    if (name && !isValidSsid(name)) {
+      setSsidError("SSID must be 1-32 characters (letters, numbers, spaces, hyphens, underscores only)")
+    } else {
+      setSsidError(null)
+    }
+
     const updatedSsids = [...localConfig.ssids]
     updatedSsids[0] = {
       ...updatedSsids[0],
@@ -164,6 +201,13 @@ export default function WifiPage() {
   const updatePassword = (password: string) => {
     if (!localConfig || !ssid) return
 
+    // Validate password
+    if (password && !isValidWifiPassword(password)) {
+      setPasswordError("Password must be 8-63 printable characters")
+    } else {
+      setPasswordError(null)
+    }
+
     const updatedSsids = [...localConfig.ssids]
     updatedSsids[0] = {
       ...updatedSsids[0],
@@ -179,6 +223,19 @@ export default function WifiPage() {
 
   const handleSave = async () => {
     if (!localConfig || !hasChanges) return
+
+    // Validate before saving
+    const currentSsid = localConfig.ssids?.[0]
+    if (currentSsid) {
+      if (!isValidSsid(currentSsid.ssidName)) {
+        setSaveError("Invalid SSID name. Please fix the error before saving.")
+        return
+      }
+      if (!isValidWifiPassword(currentSsid.wpaKey)) {
+        setSaveError("Invalid WiFi password. Please fix the error before saving.")
+        return
+      }
+    }
 
     setSaving(true)
     setSaveError(null)
@@ -432,8 +489,14 @@ export default function WifiPage() {
                     value={ssid.ssidName}
                     onChange={(e) => updateSsidName(e.target.value)}
                     placeholder="Enter network name"
-                    className="h-12 rounded-xl bg-muted/30 border-border/50"
+                    className={`h-12 rounded-xl bg-muted/30 border-border/50 ${ssidError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                   />
+                  {ssidError && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {ssidError}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -444,7 +507,7 @@ export default function WifiPage() {
                       value={ssid.wpaKey}
                       onChange={(e) => updatePassword(e.target.value)}
                       placeholder="Enter password"
-                      className="h-12 rounded-xl bg-muted/30 border-border/50 pr-12"
+                      className={`h-12 rounded-xl bg-muted/30 border-border/50 pr-12 ${passwordError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                     <button
                       type="button"
@@ -454,6 +517,12 @@ export default function WifiPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {passwordError && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {passwordError}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center justify-between gap-4 p-3 sm:p-4 rounded-xl bg-muted/30">
                   <div className="flex items-center gap-3 min-w-0">

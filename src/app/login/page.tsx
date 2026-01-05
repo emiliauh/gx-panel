@@ -8,6 +8,50 @@ import { Label } from "@/components/ui/label"
 import { Loader2, Eye, EyeOff, Globe, User, Lock } from "lucide-react"
 import Image from "next/image"
 
+/**
+ * Validate that an IP address is a safe private IP
+ * Only allows private IP ranges (RFC 1918)
+ */
+function isValidPrivateIP(ip: string): boolean {
+  // Basic IP format validation
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+  const match = ip.match(ipv4Regex)
+
+  if (!match) {
+    return false
+  }
+
+  const octets = match.slice(1, 5).map(Number)
+
+  // Check each octet is valid (0-255)
+  if (octets.some(octet => octet < 0 || octet > 255)) {
+    return false
+  }
+
+  // Block dangerous addresses
+  const blocklist = [
+    /^127\./,           // localhost
+    /^169\.254\./,      // link-local
+    /^0\./,             // invalid
+    /^224\./,           // multicast
+    /^240\./,           // reserved
+    /^255\.255\.255\.255$/, // broadcast
+  ]
+
+  if (blocklist.some(pattern => pattern.test(ip))) {
+    return false
+  }
+
+  // Only allow private IP ranges (RFC 1918)
+  const allowlist = [
+    /^192\.168\./,                        // Private class C (192.168.0.0/16)
+    /^10\./,                               // Private class A (10.0.0.0/8)
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./,    // Private class B (172.16.0.0/12)
+  ]
+
+  return allowlist.some(pattern => pattern.test(ip))
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [routerIp, setRouterIp] = useState("192.168.12.1")
@@ -38,6 +82,13 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    // Validate router IP before submitting
+    if (!isValidPrivateIP(routerIp)) {
+      setError("Invalid IP address. Please use a valid private IP (e.g., 192.168.x.x, 10.x.x.x, 172.16-31.x.x)")
+      setLoading(false)
+      return
+    }
 
     try {
       const response = await fetch("/api/router/login", {
